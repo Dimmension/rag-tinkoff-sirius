@@ -1,4 +1,6 @@
-llama-cpp-python
 transformers
 torch
-huggingface_hub[cli]
+datasets
+sentence_transformers
+chromadb
+numpy
