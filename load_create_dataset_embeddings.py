@@ -15,7 +15,7 @@ parser.add_argument('--ds-save-path', dest='ds_save_path', default=None, help="F
 
 
 args = parser.parse_args()
-logger = setup_logger('create_embeddings.log')
+logger = setup_logger(__name__)
 
 
 def load_and_save_dataset(hf_ds_name: str, ds_save_path: str) -> Dataset:
