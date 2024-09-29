@@ -1,49 +1,42 @@
-import uvicorn 
-from fastapi import FastAPI, HTTPException 
-from fastapi.responses import JSONResponse 
-from pydantic import BaseModel, Field 
- 
-class QuestionRequest(BaseModel): 
-    query: str = Field(..., description="The question to query.") 
-    threshold_confidence: float = Field(..., gt=0, le=1, description="Confidence threshold between 0 and 1.") 
-    is_soft_answer: bool = Field(..., description="Flag to enable soft answers.") 
-    is_soft_discard: bool = Field(..., description="Flag to enable soft discard logic.") 
- 
-def create_app() -> FastAPI: 
-    """ 
-    Factory function to create and configure the FastAPI application. 
-    """ 
-    app = FastAPI(title="Question Answering API", version="1.0.0") 
-    return app 
- 
-app = create_app() 
- 
-@app.post("/get_answer/", response_class=JSONResponse) 
-async def get_answer(q_request: QuestionRequest): 
-    """ 
-    Endpoint to retrieve an augmented generated answer based on the question request. 
-    """ 
-    results = { 
-        "answer": 'Some generated answer', 
-        "retrieve_logs": 'Process logs for debugging' 
-    } 
- 
-    if not q_request.query: 
-        raise HTTPException(status_code=400, detail="Query cannot be empty.") 
-    return JSONResponse(content=results) 
- 
-@app.get("/hello/", response_class=JSONResponse) 
-async def say_hello(): 
-    """ 
-    Simple hello endpoint to verify that the API is running. 
-    """ 
-    return JSONResponse(content={"message": "Hello from FastAPI!"}) 
- 
-if __name__ == "__main__": 
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from chromadb.api.models.Collection import Collection  # Import Collection type
+from db import (ChromaRAG, HandlerLLM, HandlerRAG)
+
+# Load your RAG components
+rag_handler = HandlerRAG("ai-forever/ru-en-RoSBERTa", None) 
+llm_handler = HandlerLLM(model_name="models/meta-llama-3.1-8b-instruct.Q6_K.gguf") 
+
+chroma_client = ChromaRAG("172.22.100.166", 4810, 'kuznetsoffandrey/sberquad', rag_handler.retriever)
+chroma_client.setup_collection(collection_name="sberquad_rag")
+collection = chroma_client.collection
+
+
+# Define your API request model
+class Query(BaseModel):
+    question: str
+
+# Create the FastAPI app
+app = FastAPI()
+
+@app.post("/query")
+def query_rag(query_data: Query):
+    question = query_data.question
+    try:
+        retrieved_context = rag_handler.get_context(question, collection)  
+        llm_response = llm_handler.get_response(context=retrieved_context, question=question)
+
+        return {"answer": llm_response}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+
+if __name__ == "__main__":
     uvicorn.run( 
         "app:app", 
         host="127.0.0.1", 
         port=4830, 
         log_level="info", 
-        # reload=True
     )
+
