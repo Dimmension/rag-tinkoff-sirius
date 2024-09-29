@@ -20,11 +20,12 @@ RUN apt install python3.10 -y
 RUN apt install -y \
     python3-pip
 RUN pip install --upgrade pip
-RUN pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cu118
+RUN pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu118
 
 COPY requirements.txt requirements.txt 
 RUN pip install --upgrade pip setuptools
 RUN pip install -r ./requirements.txt
+RUN CMAKE_ARGS="-DLLAMA_CUDA=on -DLLAVA_BUILD=off" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir
 
 WORKDIR /home/root/app
 

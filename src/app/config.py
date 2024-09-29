@@ -3,8 +3,9 @@ import torch
 
 os.environ['CUDA_VISIBLE_DEVICES']='3'
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+N_GPU_LAYERS = -1
 PROMPT_RAG = [
     {
         "role": "system",

@@ -1,23 +1,23 @@
 version: '3.9'
 
 services:
-  chromadb:
-    image: chromadb/chroma:latest
-    volumes:
-      - ./chromadb:/chroma/chroma
-    command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
-    environment:
-      - IS_PERSISTENT=TRUE
-    restart: unless-stopped
-    ports:
-      - "4810:8000"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    extra_hosts:
-    - "host.docker.internal:host-gateway"
+  # chromadb:
+  #   image: chromadb/chroma:latest
+  #   volumes:
+  #     - ./chromadb:/chroma/chroma
+  #   command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
+  #   environment:
+  #     - IS_PERSISTENT=TRUE
+  #   restart: unless-stopped
+  #   ports:
+  #     - "4810:8000"
+  #   healthcheck:
+  #     test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   extra_hosts:
+  #   - "host.docker.internal:host-gateway"
 
   # llamacpp-server:
   #   image: ghcr.io/ggerganov/llama.cpp:server-cuda # https://github.com/ggerganov/llama.cpp/discussions/8430
@@ -43,35 +43,30 @@ services:
   #   container_name: backend_rag
   #   build: 
   #     context: ./src/app
-  #     dockerfile: Dockerfile
-  #   image: "rag_app:latest"
-  #   env_file:
-  #     - ./.env
+  #     dockerfile: Dockerfile.app
+  #   image: backend_rag:latest
   #   ports:
-  #     - ${RAG_APP_PORT}:7000
+  #     - 4830:7000
   #   deploy:
   #     resources:
   #       reservations:
   #         devices:
   #           - driver: nvidia
-  #             capabilities: [gpu]
+  #             capabilities: [ gpu ]
   #   volumes:
   #     - "./src/app:/home/root/app"
-  #     - "${CORPUS_DIR_PATH}:/home/root/app/data"
-  #     - "${EXTERNAL_MODEL_CACHE}:${MODEL_CACHE}"
 
-  # rag_gradio:
-  #   container_name: rag_gradio
-  #   build: 
-  #     context: ./src/gradio/
-  #     dockerfile: Dockerfile
-  #   image: "rag_gradio:latest"
-  #   env_file:
-  #     - ./.env
-  #   ports:
-  #     - ${GRADIO_APP_PORT}:${GRADIO_APP_PORT}
-  #   volumes:
-  #     - "./src/gradio:/home/root/gradio"
-  #     - "${CORPUS_DIR_PATH}:/home/root/gradio/data"
-  #   extra_hosts:
-  #   - "host.docker.internal:host-gateway"
+  frontend_rag_gradio:
+    container_name: frontend_rag_gradio
+    build: 
+      context: ./src/gradio/
+      dockerfile: Dockerfile
+    image: "frontend_rag_gradio:latest"
+    env_file:
+      - ./.env
+    ports:
+      - ${GRADIO_APP_PORT}:${GRADIO_APP_PORT}
+    volumes:
+      - "./src/gradio:/home/root/gradio"
+    extra_hosts:
+    - "host.docker.internal:host-gateway"

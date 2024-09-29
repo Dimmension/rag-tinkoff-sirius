@@ -1,17 +1,21 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from chromadb.api.models.Collection import Collection  # Import Collection type
 from db import (ChromaRAG, HandlerLLM, HandlerRAG)
-
-# Load your RAG components
-rag_handler = HandlerRAG("ai-forever/ru-en-RoSBERTa", None) 
-llm_handler = HandlerLLM(model_name="models/meta-llama-3.1-8b-instruct.Q6_K.gguf") 
-
-chroma_client = ChromaRAG("172.22.100.166", 4810, 'kuznetsoffandrey/sberquad', rag_handler.retriever)
-chroma_client.setup_collection(collection_name="sberquad_rag")
-collection = chroma_client.collection
-
+from llama_cpp import Llama, LLAMA_SPLIT_MODE_LAYER
+from config import DEVICE, N_GPU_LAYERS
+from llama_cpp import Llama 
+from sentence_transformers import SentenceTransformer 
+ 
+# Pre-load the Llama and SentenceTransformer models 
+llama_model = Llama(model_path="models/meta-llama-3.1-8b-instruct.Q6_K.gguf", split_mode=LLAMA_SPLIT_MODE_LAYER, n_gpu_layers=N_GPU_LAYERS, offload_kqv=True) 
+retriever_model = SentenceTransformer('ai-forever/ru-en-RoSBERTa').to(DEVICE) 
+ 
+# Instantiate classes with pre-loaded models 
+llm_handler = HandlerLLM(llama_model) 
+rag_handler = HandlerRAG(retriever_model) 
+chroma_rag = ChromaRAG(host="172.22.100.166", port=4810, dataset_name="kuznetsoffandrey/sberquad", retriever=retriever_model)
+chroma_rag.setup_collection('sberquad_rag', 'ai-forever/ru-en-RoSBERTa')
 
 # Define your API request model
 class Query(BaseModel):
@@ -24,7 +28,7 @@ app = FastAPI()
 def query_rag(query_data: Query):
     question = query_data.question
     try:
-        retrieved_context = rag_handler.get_context(question, collection)  
+        retrieved_context = rag_handler.get_context(question, chroma_rag.get_collection('sberquad_rag'))  
         llm_response = llm_handler.get_response(context=retrieved_context, question=question)
 
         return {"answer": llm_response}
@@ -39,4 +43,3 @@ if __name__ == "__main__":
         port=4830, 
         log_level="info", 
     )
-

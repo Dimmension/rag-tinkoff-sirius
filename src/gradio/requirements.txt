@@ -1,3 +1,0 @@
-requests
-python-dotenv
-gradio==4.14.0

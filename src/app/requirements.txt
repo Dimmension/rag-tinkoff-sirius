@@ -1,12 +1,7 @@
-numpy==1.26.4
 transformers
-python-dotenv==1.0.0
-fastapi==0.109.2
-pydantic==2.6.1
-uvicorn==0.27.1
-sentencepiece
-sentence-transformers
-accelerate
-optimum
-bitsandbytes
+datasets
+sentence_transformers
 chromadb
+numpy
+fastapi
+pydantic
