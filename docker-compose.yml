@@ -1,72 +1,53 @@
 version: '3.9'
 
 services:
-  # chromadb:
-  #   image: chromadb/chroma:latest
-  #   volumes:
-  #     - ./chromadb:/chroma/chroma
-  #   command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
-  #   environment:
-  #     - IS_PERSISTENT=TRUE
-  #   restart: unless-stopped
-  #   ports:
-  #     - "4810:8000"
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #   extra_hosts:
-  #   - "host.docker.internal:host-gateway"
+  chromadb:
+    image: chromadb/chroma:latest
+    volumes:
+      - ./chromadb:/chroma/chroma
+    command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
+    environment:
+      - IS_PERSISTENT=TRUE
+    restart: unless-stopped
+    ports:
+      - "4810:8000"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
 
-  # llamacpp-server:
-  #   image: ghcr.io/ggerganov/llama.cpp:server-cuda # https://github.com/ggerganov/llama.cpp/discussions/8430
-  #   ports:
-  #     - 4820:4820
-  #   volumes:
-  #     - ./models:/models
-  #   environment:
-  #     CUDA_VISIBLE_DEVICES: 3
-  #     LD_LIBRARY_PATH: /usr/local/cuda/compat/ # https://github.com/ggerganov/llama.cpp/issues/7822
-  #     LLAMA_ARG_MODEL: /models/meta-llama-3.1-8b-instruct.Q6_K.gguf
-  #     LLAMA_ARG_N_PARALLEL: 3
-  #     LLAMA_ARG_PORT: 4820
-  #     LLAMA_ARG_N_GPU_LAYERS: -1
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             capabilities: [ gpu ]
-
-  # backend_rag:
-  #   container_name: backend_rag
-  #   build: 
-  #     context: ./src/app
-  #     dockerfile: Dockerfile.app
-  #   image: backend_rag:latest
-  #   ports:
-  #     - 4830:7000
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             capabilities: [ gpu ]
-  #   volumes:
-  #     - "./src/app:/home/root/app"
-
-  frontend_rag_gradio:
-    container_name: frontend_rag_gradio
+  backend_rag:
+    container_name: backend_rag
     build: 
-      context: ./src/gradio/
+      context: ./src/app
+      dockerfile: Dockerfile.app
+    image: backend_rag:latest
+    ports:
+      - 4830:7000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [ gpu ]
+    volumes:
+      - "./src/app:/home/root/app"
+
+
+  rag_gradio_interface:
+    container_name: rag_gradio_interface
+    build: 
+      context: ./src/gradio_interface
       dockerfile: Dockerfile
-    image: "frontend_rag_gradio:latest"
+    image: "rag_gradio_interface:latest"
     env_file:
       - ./.env
     ports:
-      - ${GRADIO_APP_PORT}:${GRADIO_APP_PORT}
+      - 4840:7000
     volumes:
-      - "./src/gradio:/home/root/gradio"
+      - "./src/gradio_interface:/home/root/gradio_interface"
     extra_hosts:
-    - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"

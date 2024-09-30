@@ -6,7 +6,9 @@ from llama_cpp import Llama, LLAMA_SPLIT_MODE_LAYER
 from config import DEVICE, N_GPU_LAYERS
 from llama_cpp import Llama 
 from sentence_transformers import SentenceTransformer 
- 
+from fastapi.responses import JSONResponse
+
+
 # Pre-load the Llama and SentenceTransformer models 
 llama_model = Llama(model_path="models/meta-llama-3.1-8b-instruct.Q6_K.gguf", split_mode=LLAMA_SPLIT_MODE_LAYER, n_gpu_layers=N_GPU_LAYERS, offload_kqv=True) 
 retriever_model = SentenceTransformer('ai-forever/ru-en-RoSBERTa').to(DEVICE) 
@@ -24,7 +26,7 @@ class Query(BaseModel):
 # Create the FastAPI app
 app = FastAPI()
 
-@app.post("/query")
+@app.post("/query", response_class=JSONResponse)
 def query_rag(query_data: Query):
     question = query_data.question
     try:
