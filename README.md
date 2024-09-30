@@ -38,5 +38,7 @@ answers - ответ на вопрос, основанный на контекс
 Интерфейс gradio:
 ![alt text](asstes/gradio_result.png)
 
+Затраты по памяти:
+![alt text](image.png)
 ## Контакты
 По всем возникающим вопросам писать в тг: @dimmmension
