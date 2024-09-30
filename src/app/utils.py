@@ -1,3 +1,5 @@
+import os
+import requests
 import chromadb
 import numpy as np
 import logging
@@ -8,10 +10,9 @@ from sentence_transformers import SentenceTransformer
 from datasets import load_dataset
 from llama_cpp import Llama
 from config import PROMPT_RAG
-import os
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class DatasetRAG:
@@ -296,3 +297,32 @@ class ChromaRAG:
         except Exception as e:
             logging.error(f"Failed to set up collection {collection_name}: {e}")
             raise e
+
+
+def download_model(download_url: str, file_name: str, folder_path: str = '/models'):
+    """
+    Downloads a file from the given URL and saves it to the specified folder.
+    Creates the folder if it doesn't exist.
+
+    Args:
+        download_url (str): The direct download link for the file.
+        folder_path (str): The path to the folder where the file will be saved.
+        file_name (str): The name to save the file as.
+    """
+    
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+        logging.info(f"Folder created: {folder_path}")
+    else:
+        logging.info(f"Folder already exists: {folder_path}")
+    
+    file_path = os.path.join(folder_path, file_name)
+    
+    response = requests.get(download_url, stream=True)
+    
+    with open(file_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+    
+    logging.info(f"Download completed and saved to: {file_path}")

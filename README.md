@@ -34,6 +34,37 @@ answers - ответ на вопрос, основанный на контекс
 3. LLM
 В качестве генеративной модели я взял модель **meta-llama-3.1-8b-instruct.Q6_K**, наиболее проверенную и надежную модель(работал с ней раньше). Важное уточнение, я использовал её квантизированную версию GGUF с помощью библиотеки llama.cpp: https://github.com/ggerganov/llama.cpp
 
+4. API
+Для создания API сервера был выбран FastAPI
+
+5. Frontend
+Для создания интерфейса был выбран Gradio
+
+## Треборвания
+- Docker
+- Python3.10
+- CUDA 11.8
+
+## Установка
+Установка модели LLaMA3.1 8B
+```
+cd src/app/models
+wget https://huggingface.co/SanctumAI/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/meta-llama-3.1-8b-instruct.Q6_K.gguf
+```
+
+## Настройка 
+Надо будет настроить IP под свои.
+```
+CHROMA_HOST = '172.22.100.166' # 127.0.0.1
+APP_HOST = '127.0.0.1'
+```
+
+## Запуск
+```
+docker-compose up --build
+```
+
+Сервис будет доступен по: http://localhost:4840/
 
 ## Результы
 Интерфейс gradio:
@@ -43,5 +74,6 @@ answers - ответ на вопрос, основанный на контекс
 Затраты по памяти:
 
 ![alt text](asstes/memory_gpu.png)
+
 ## Контакты
-По всем возникающим вопросам писать в тг: @dimmmension
+По всем возникающим проблемам писать в тг: @dimmmension
