@@ -3,21 +3,21 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from utils import (ChromaRAG, HandlerLLM, HandlerRAG)
 from llama_cpp import Llama, LLAMA_SPLIT_MODE_LAYER
-from config import DEVICE, N_GPU_LAYERS
+import config
 from llama_cpp import Llama 
 from sentence_transformers import SentenceTransformer 
 from fastapi.responses import JSONResponse
 
 
 # Pre-load the Llama and SentenceTransformer models 
-llama_model = Llama(model_path="models/meta-llama-3.1-8b-instruct.Q6_K.gguf", split_mode=LLAMA_SPLIT_MODE_LAYER, n_gpu_layers=N_GPU_LAYERS, offload_kqv=True) 
-retriever_model = SentenceTransformer('ai-forever/ru-en-RoSBERTa').to(DEVICE) 
+llama_model = Llama(model_path=config.LLM_PATH, split_mode=LLAMA_SPLIT_MODE_LAYER, n_gpu_layers=config.N_GPU_LAYERS, offload_kqv=True) 
+retriever_model = SentenceTransformer(config.RETRIEVER_NAME).to(config.DEVICE) 
  
 # Instantiate classes with pre-loaded models 
 llm_handler = HandlerLLM(llama_model) 
 rag_handler = HandlerRAG(retriever_model) 
-chroma_rag = ChromaRAG(host="172.22.100.166", port=4810, dataset_name="kuznetsoffandrey/sberquad", retriever=retriever_model)
-chroma_rag.setup_collection('sberquad_rag', 'ai-forever/ru-en-RoSBERTa')
+chroma_rag = ChromaRAG(host=config.CHROMA_HOST, port=config.CHROMA_PORT, dataset_name=config.DATASET_NAME, retriever=retriever_model)
+chroma_rag.setup_collection(config.CHROMA_COLLECTION_NAME, config.RETRIEVER_NAME)
 
 # Define your API request model
 class Query(BaseModel):
@@ -30,7 +30,7 @@ app = FastAPI()
 def query_rag(query_data: Query):
     question = query_data.question
     try:
-        retrieved_context = rag_handler.get_context(question, chroma_rag.get_collection('sberquad_rag'))  
+        retrieved_context = rag_handler.get_context(question, chroma_rag.get_collection(config.CHROMA_COLLECTION_NAME))  
         llm_response = llm_handler.get_response(context=retrieved_context, question=question)
 
         return {"answer": llm_response}
@@ -41,7 +41,7 @@ def query_rag(query_data: Query):
 if __name__ == "__main__":
     uvicorn.run( 
         "app:app", 
-        host="127.0.0.1", 
-        port=4830, 
+        host=config.APP_HOST, 
+        port=config.APP_PORT, 
         log_level="info", 
     )

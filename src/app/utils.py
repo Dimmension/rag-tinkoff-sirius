@@ -175,8 +175,8 @@ class ChromaRAG:
                 settings=Settings(allow_reset=True, anonymized_telemetry=False)
             )
             self.dataset = load_dataset(dataset_name)
-            self.retriever = retriever  # Use the pre-loaded retriever
-            self.collection = None  # Initialize self.collection to None
+            self.retriever = retriever
+            self.collection = None
             logging.info(f"ChromaDB client initialized on {host}:{port} with dataset {dataset_name}.")
         except Exception as e:
             logging.error(f"Failed to initialize ChromaRAG: {e}")
