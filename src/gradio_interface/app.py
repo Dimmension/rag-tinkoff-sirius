@@ -2,11 +2,7 @@ import logging
 import gradio as gr
 import requests
 
-logging.root.setLevel(logging.INFO)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class GradioBot(gr.Blocks):

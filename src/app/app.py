@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from db import (ChromaRAG, HandlerLLM, HandlerRAG)
+from utils import (ChromaRAG, HandlerLLM, HandlerRAG)
 from llama_cpp import Llama, LLAMA_SPLIT_MODE_LAYER
 from config import DEVICE, N_GPU_LAYERS
 from llama_cpp import Llama 
